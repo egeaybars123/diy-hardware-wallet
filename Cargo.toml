@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 ethers = { version = "2.0", features = ["rustls"] }
 # Ethers' async features rely upon the Tokio async runtime.
-tokio = { version = "1", features = ["macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 # Flexible concrete Error Reporting type built on std::error::Error with customizable Reports
 eyre = "0.6"
 dotenv = "0.15.0"

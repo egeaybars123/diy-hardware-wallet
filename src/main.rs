@@ -2,19 +2,31 @@ extern crate dotenv;
 
 use std::env;
 use dotenv::dotenv;
-//use ethers::prelude::*;
+use ethers::prelude::*;
 
-fn main() {
+//send to this address: 0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>>  {
     dotenv().ok();
 
-    let priv_key = "PRIVATE_KEY";
-    let rpc_url = "RPC_URL";
+    let priv_key = env::var("PRIVATE_KEY").unwrap();
+    let rpc_url = env::var("RPC_URL").unwrap();
 
-    match env::var(priv_key) {
-        Ok(v) => println!("${}: {}", priv_key, v),
-        Err(e) => panic!("${} is not set ({})", priv_key, e)
-    }
+    //let signer = priv_key.parse::<LocalWallet>().unwrap();
+    //let address = signer.address();
+    //println!("{}", address);
 
-    let test = env::var(rpc_url).unwrap();
-    println!("{}", test);
+    let provider = Provider::<Http>::try_from(rpc_url)?;
+    let wallet = priv_key
+    .parse::<LocalWallet>()?
+    .with_chain_id(Chain::Sepolia);
+
+    let client = SignerMiddleware::new(provider.clone(), wallet.clone());
+
+    println!("{}", client.address());
+
+    let balance = provider.get_balance(client.address(), None).await?;
+    println!("{}", balance);
+
+    Ok(())
 }
