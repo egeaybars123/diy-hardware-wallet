@@ -2,7 +2,7 @@ extern crate dotenv;
 
 use std::env;
 use dotenv::dotenv;
-use ethers::prelude::*;
+use ethers::{utils, prelude::*};
 
 //send to this address: 0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e
 #[tokio::main]
@@ -28,5 +28,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>  {
     let balance = provider.get_balance(client.address(), None).await?;
     println!("{}", balance);
 
+    let to_addr = "0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e".parse::<Address>()?;
+    let tx = TransactionRequest::new()
+        .to(to_addr)
+        .value(U256::from(utils::parse_ether(0.01)?));
+    println!("{:?}", tx.rlp_unsigned());
     Ok(())
 }
