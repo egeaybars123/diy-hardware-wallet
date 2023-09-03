@@ -10,7 +10,7 @@ pub async fn get_balance(
     Ok(balance)
 }
 
-pub fn rlp_tx(to_addr: &str, value: f64) -> Result<Bytes, Box<dyn std::error::Error>> {
+pub fn _rlp_tx(to_addr: &str, value: f64) -> Result<Bytes, Box<dyn std::error::Error>> {
     let to_addr = to_addr.parse::<Address>()?;
     let tx = TransactionRequest::new()
         .to(to_addr)

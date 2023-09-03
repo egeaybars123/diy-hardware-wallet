@@ -2,7 +2,7 @@ extern crate dotenv;
 
 use dotenv::dotenv;
 use std::env;
-use ethers::{prelude::*, utils, providers::Middleware};
+use ethers::{prelude::*, utils, providers::Middleware, types::transaction::eip2718::TypedTransaction};
 
 mod web3;
 
@@ -32,23 +32,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let balance = web3::get_balance(&provider, client.address()).await?;
     println!("Sepolia ETH Balance: {}", utils::format_units(balance, "ether")?);
 
-    //let serialized_tx = web3::rlp_tx("0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e", 0.01)?;
-    //println!("{:?}", serialized_tx);
-    //wallet.sign_transaction_sync(tx)
 
     //add typed transaction and tx.sig_hash() which will send the hash to the stm32 for signing.
     //prepare tx.
-
     let price_gas = provider.get_gas_price().await?;
-    
+    println!("{:}", price_gas);
+
     let tx = TransactionRequest::new()
+    .from(wallet.address())
     .nonce(nonce)
     .to("0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e".parse::<Address>()?)
-    .value(U256::from(utils::parse_ether(0.001)?))
-    .gas_price(price_gas)
+    .value(U256::from(utils::parse_ether(0.0001)?))
+    .gas_price(price_gas+10000)
     .gas(21000)
-    .chain_id(Chain::Sepolia);
+    .chain_id(Chain::Sepolia); 
+/* 
+    let tx = TransactionRequest::new()
+        .to("0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e".parse::<Address>()?)
+        .value(U256::from(utils::parse_ether(0.001)?))
+        .from(wallet.address()); */
 
+    let _result = client.send_transaction(tx.clone(), None).await?.await?;
+    //println!("{:?}", _result);
+
+    let binding = tx.sighash();
+    let hash = binding.as_bytes(); //could be useful while sending data over UART.
+    println!("{:}", binding);
+    println!("{:x?}", hash); //displays as hex
+
+    let mut sig = wallet.sign_hash(binding)?;
+    sig.v = to_eip155_v(sig.v as u8 - 27, 11155111);
+    println!("{}", sig);
+
+    let signed_raw_tx = tx.rlp_signed(&sig);
+    provider.send_raw_transaction(signed_raw_tx).await?;
 
     Ok(())
 }
