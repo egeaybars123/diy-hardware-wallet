@@ -2,7 +2,7 @@ extern crate dotenv;
 
 use dotenv::dotenv;
 use std::env;
-use ethers::{prelude::*, utils, providers::Middleware, types::transaction::eip2718::TypedTransaction};
+use ethers::{prelude::*, utils};
 
 mod web3;
 
@@ -29,8 +29,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("{}", client.address());
 
-    let balance = web3::get_balance(&provider, client.address()).await?;
-    println!("Sepolia ETH Balance: {}", utils::format_units(balance, "ether")?);
+    //let balance = web3::get_balance(&provider, client.address()).await?;
+    //println!("Sepolia ETH Balance: {}", utils::format_units(balance, "ether")?);
 
 
     //add typed transaction and tx.sig_hash() which will send the hash to the stm32 for signing.
@@ -46,14 +46,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .gas_price(price_gas+10000)
     .gas(21000)
     .chain_id(Chain::Sepolia); 
-/* 
-    let tx = TransactionRequest::new()
-        .to("0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e".parse::<Address>()?)
-        .value(U256::from(utils::parse_ether(0.001)?))
-        .from(wallet.address()); */
-
-    let _result = client.send_transaction(tx.clone(), None).await?.await?;
-    //println!("{:?}", _result);
 
     let binding = tx.sighash();
     let hash = binding.as_bytes(); //could be useful while sending data over UART.
@@ -65,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", sig);
 
     let signed_raw_tx = tx.rlp_signed(&sig);
-    provider.send_raw_transaction(signed_raw_tx).await?;
+    //provider.send_raw_transaction(signed_raw_tx).await?;
 
     Ok(())
 }
