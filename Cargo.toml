@@ -12,3 +12,4 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 # Flexible concrete Error Reporting type built on std::error::Error with customizable Reports
 eyre = "0.6"
 dotenv = "0.15.0"
+serialport = "4.2.2"
