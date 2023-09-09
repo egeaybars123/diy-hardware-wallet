@@ -7,7 +7,6 @@ use std::env;
 //use std::time::Duration;
 
 mod web3;
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
@@ -33,35 +32,52 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .nonce(nonce)
         .to("0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e".parse::<Address>()?)
         .value(U256::from(utils::parse_ether(0.0001)?))
-        .gas_price(price_gas + suggested_increase)
+        .gas_price(1000)
         .gas(21000)
         .chain_id(Chain::Sepolia);
 
     let binding = tx.sighash();
 
-   let mut port = serialport::new("COM3", 9600)
-        .timeout(Duration::from_millis(5000))
+    /* let mut port = serialport::new("COM3", 9600)
+        .timeout(Duration::from_millis(30000))
         .open()
-        .expect("Failed to open port");
+        .expect("Failed to open port"); */
+ 
+    let hash: &[u8] = binding.as_bytes(); //could be useful while sending data over UART.
+    println!("{:?}", hash);
 
-    let hash = binding.as_bytes(); //could be useful while sending data over UART.
+    //port.write(hash).expect("Hash write failed");
 
-    port.write(hash).expect("Hash write failed");
+    //ECDSA signature length: 64 bytes.
+    //let mut serial_buf: Vec<u8> = vec![0; 32];
+    //port.read(serial_buf.as_mut_slice()).expect("Found no data!");
 
-    let mut serial_buf: Vec<u8> = vec![0; 64];
-    port.read(serial_buf.as_mut_slice()).expect("Found no data!"); 
+    //let hardware_sig_r = U256::from_little_endian(&serial_buf);
+    //let hardware_sig_s = U256::from_big_endian(&serial_buf[32..64]); 
 
+    //println!("{:?}", serial_buf);
     
+    //println!("SIGNATURE R VALUE: {:?}", hardware_sig_r);
+    println!();
+    //println!("SIGNATURE S VALUE: {:?}", hardware_sig_s);
     
-    /* let mut sig = wallet.sign_hash(binding)?;
+    let sig = wallet.sign_hash(binding)?;
 
     let sig_r = sig.r;
     let sig_s = sig.s;
+    
+    println!("ECDSA Sig R: {:?}", sig_r);
+    println!("ECDSA Sig S: {:?}", sig_s);
+
+    let mut sig_r_bytes = [0u8; 32];
+    sig_r.to_little_endian(&mut sig_r_bytes);
+
+    println!("{:?}", sig_r_bytes);
 
     //println!("{:?}", sig.v);
-    sig.v = to_eip155_v(sig.v as u8 - 27, 11155111);
-    println!("{:?}", sig.recovery_id());
-     */
+    //sig.v = to_eip155_v(sig.v as u8 - 27, 11155111);
+    //println!("{:?}", sig.recovery_id());
+    
     /* let mut recid_count = 0;
     while recid_count < 4 {
         let mut sig_ready = Signature{r: sig_r, s: sig_s, v: recid_count};
