@@ -4,12 +4,20 @@ use dotenv::dotenv;
 use ethers::{prelude::*, utils};
 use std::env;
 use std::time::Duration;
-//use std::time::Duration;
+use clap::Parser;
+use args::Cli;
 
 mod web3;
+mod args;
 #[tokio::main]
+//cargo install --path . && hardware-wallet --help 
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
+
+    let cli = Cli::parse();
+    let to_addr = (cli.address).parse::<Address>()?;
+    let value: f64 = (cli.value).parse().unwrap();
+
 
     let priv_key = env::var("PRIVATE_KEY").unwrap();
     let rpc_url = env::var("RPC_URL").unwrap();
@@ -30,8 +38,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let tx = TransactionRequest::new()
         .nonce(nonce)
-        .to("0xC57dA14667ECf7270348dcC7FB1E6D704e82D81e".parse::<Address>()?)
-        .value(U256::from(utils::parse_ether(0.0001)?))
+        .to(to_addr)
+        .value(U256::from(utils::parse_ether(value)?))
         .gas_price(suggested_increase)
         .gas(21000)
         .chain_id(Chain::Sepolia);
